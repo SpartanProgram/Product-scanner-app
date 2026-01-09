@@ -91,8 +91,8 @@ fun ProductScannerApp() {
                 startDestination = AppRoute.Scan.route,
                 modifier = Modifier
             ) {
-                composable("scan") {
-                    ScanRoute(
+                composable(AppRoute.Scan.route) {
+                ScanRoute(
                         innerPadding = innerPadding,
                         context = context,
                         onBarcode = { code ->
