@@ -1,4 +1,4 @@
-# IntelliJ / Android Studio
+# Android Studio / IntelliJ
 .idea/
 *.iml
 
@@ -9,15 +9,15 @@
 # Local configuration (never commit)
 local.properties
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
-# Captures / outputs
+# Outputs
 captures/
 *.apk
 *.aab
 
-# Native build folders
+# Native builds
 .externalNativeBuild/
 .cxx/
