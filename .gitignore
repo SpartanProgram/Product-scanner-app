@@ -1,23 +1,40 @@
-# Android Studio / IntelliJ
+cat > .gitignore <<'EOF'
+# ===== Android Studio / IntelliJ =====
 .idea/
 *.iml
+*.ipr
+*.iws
+/out/
 
-# Gradle
+# ===== Gradle =====
 .gradle/
-**/build/
+build/
+*/build/
 
-# Local configuration (never commit)
+# ===== Local config =====
 local.properties
+*.jks
+*.keystore
 
-# OS
+# ===== macOS =====
 .DS_Store
-Thumbs.db
 
-# Outputs
-captures/
-*.apk
-*.aab
-
-# Native builds
+# ===== Native build =====
 .externalNativeBuild/
 .cxx/
+
+# ===== Logs =====
+*.log
+
+# ===== Kotlin/Java =====
+*.class
+
+# ===== Compose / tooling =====
+/captures/
+
+# ===== Optional: fastlane (if ever used) =====
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+EOF
