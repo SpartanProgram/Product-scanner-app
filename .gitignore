@@ -1,0 +1,23 @@
+# IntelliJ / Android Studio
+.idea/
+*.iml
+
+# Gradle
+.gradle/
+**/build/
+
+# Local configuration (never commit)
+local.properties
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Captures / outputs
+captures/
+*.apk
+*.aab
+
+# Native build folders
+.externalNativeBuild/
+.cxx/
