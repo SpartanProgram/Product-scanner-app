@@ -25,6 +25,8 @@ import de.htw_berlin.productscannerapp.ui.screens.history.HistoryScreen
 import de.htw_berlin.productscannerapp.ui.screens.scan.ScanScreen
 import de.htw_berlin.productscannerapp.ui.screens.settings.SettingsScreen
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import de.htw_berlin.productscannerapp.ui.screens.scan.ScanRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +41,7 @@ fun ProductScannerApp() {
 
     val isTopLevel = drawerItems.any { it.route.route == currentRoute }
     val showUp = !isTopLevel && navController.previousBackStackEntry != null
+    val context = LocalContext.current
 
     val title = when (currentRoute) {
         AppRoute.Scan.route -> "Scanner"
@@ -88,11 +91,12 @@ fun ProductScannerApp() {
                 startDestination = AppRoute.Scan.route,
                 modifier = Modifier
             ) {
-                composable(AppRoute.Scan.route) {
-                    ScanScreen(
+                composable("scan") {
+                    ScanRoute(
                         innerPadding = innerPadding,
-                        onFakeScan = { barcode ->
-                            navController.navigate(AppRoute.ProductDetail.createRoute(barcode))
+                        context = context,
+                        onBarcode = { code ->
+                            navController.navigate("detail/$code")
                         }
                     )
                 }
@@ -114,8 +118,8 @@ fun ProductScannerApp() {
                     AboutScreen(innerPadding = innerPadding)
                 }
 
-                composable(AppRoute.ProductDetail.route) { entry ->
-                    val barcode = entry.arguments?.getString("barcode").orEmpty()
+                composable(AppRoute.ProductDetail.route) { backStackEntry ->
+                    val barcode = backStackEntry.arguments?.getString("barcode").orEmpty()
                     ProductDetailScreen(
                         innerPadding = innerPadding,
                         barcode = barcode

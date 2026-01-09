@@ -1,3 +1,5 @@
+package de.htw_berlin.productscannerapp
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
