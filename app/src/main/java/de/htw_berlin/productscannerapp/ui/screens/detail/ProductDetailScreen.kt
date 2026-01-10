@@ -12,6 +12,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import de.htw_berlin.productscannerapp.ui.components.CategoryChip
 import de.htw_berlin.productscannerapp.ui.components.SkeletonBlock
 import de.htw_berlin.productscannerapp.ui.components.SkeletonCard
+import android.content.Intent
+import android.widget.Toast
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.HorizontalDivider
 
 @Composable
 fun ProductDetailScreen(
@@ -25,15 +35,9 @@ fun ProductDetailScreen(
     val state by vm.state.collectAsState()
 
     when (state) {
+
         ProductDetailState.Loading -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = androidx.compose.ui.Alignment.Center
-            ) {
-                ProductDetailSkeleton(innerPadding = innerPadding)
-            }
+            ProductDetailSkeleton(innerPadding = innerPadding)
         }
 
         is ProductDetailState.Error -> {
@@ -73,58 +77,76 @@ private fun ProductDetailContent(
         item {
             Text(state.name, style = MaterialTheme.typography.headlineSmall)
             state.brand?.let {
-                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-
-        item {
-            Card(Modifier.fillMaxWidth()) {
                 Text(
-                    "Barcode: ${state.barcode}",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyMedium
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
-
         item {
-            Card(Modifier.fillMaxWidth()) {
+            Text(state.name, style = MaterialTheme.typography.headlineSmall)
+            state.brand?.let {
                 Text(
-                    "Categories",
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp),
-                    style = MaterialTheme.typography.titleMedium
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(8.dp))
+            }
+        }
+        item {
+            val context = LocalContext.current
+            val clipboard = LocalClipboardManager.current
 
-                LazyRow(
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Card(Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                 ) {
-                    items(state.categories) { tag ->
-                        CategoryChip(tag = tag)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Barcode",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(state.barcode, style = MaterialTheme.typography.bodyLarge)
+                    }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        IconButton(onClick = {
+                            clipboard.setText(AnnotatedString(state.barcode))
+                            Toast.makeText(context, "Barcode copied", Toast.LENGTH_SHORT).show()
+                        }) {
+                            Icon(Icons.Outlined.ContentCopy, contentDescription = "Copy barcode")
+                        }
+
+                        IconButton(onClick = {
+                            val shareText = buildString {
+                                append("Product: ${state.name}\n")
+                                state.brand?.let { append("Brand: $it\n") }
+                                append("Barcode: ${state.barcode}")
+                            }
+
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, shareText)
+                            }
+                            context.startActivity(Intent.createChooser(intent, "Share product"))
+                        }) {
+                            Icon(Icons.Outlined.Share, contentDescription = "Share")
+                        }
                     }
                 }
             }
         }
-
-        state.ingredients?.let { ing ->
-            item {
-                Card(Modifier.fillMaxWidth()) {
-                    Text(
-                        "Ingredients",
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(ing, modifier = Modifier.padding(16.dp))
-                }
-            }
-        }
-
         item {
             Card(Modifier.fillMaxWidth()) {
                 Text(
-                    "Why this result?",
+                    text = "Why this result?",
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp),
                     style = MaterialTheme.typography.titleMedium
                 )
@@ -132,24 +154,38 @@ private fun ProductDetailContent(
 
                 if (state.reasons.isEmpty()) {
                     Text(
-                        "No explanation available.",
+                        text = "No explanation available.",
                         modifier = Modifier.padding(16.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
-                    state.reasons.forEach { reason ->
-                        Text(
-                            "• $reason",
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-                        )
+                    state.reasons.forEachIndexed { index, reason ->
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = androidx.compose.ui.Alignment.Top
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = reason,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        if (index != state.reasons.lastIndex) {
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                        }
                     }
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(8.dp))
                 }
             }
         }
     }
 }
-
 @Composable
 private fun ProductDetailSkeleton(innerPadding: PaddingValues) {
     Column(
