@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import de.htw_berlin.productscannerapp.ui.components.CategoryChip
+import de.htw_berlin.productscannerapp.ui.components.SkeletonBlock
+import de.htw_berlin.productscannerapp.ui.components.SkeletonCard
 
 @Composable
 fun ProductDetailScreen(
@@ -30,7 +32,7 @@ fun ProductDetailScreen(
                     .padding(innerPadding),
                 contentAlignment = androidx.compose.ui.Alignment.Center
             ) {
-                CircularProgressIndicator()
+                ProductDetailSkeleton(innerPadding = innerPadding)
             }
         }
 
@@ -144,6 +146,54 @@ private fun ProductDetailContent(
                     Spacer(Modifier.height(10.dp))
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ProductDetailSkeleton(innerPadding: PaddingValues) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        SkeletonBlock(Modifier.height(28.dp).fillMaxWidth(0.65f))
+        SkeletonBlock(Modifier.height(18.dp).fillMaxWidth(0.4f))
+
+        SkeletonCard {
+            SkeletonBlock(Modifier.height(18.dp).fillMaxWidth(0.5f))
+            Spacer(Modifier.height(12.dp))
+            SkeletonBlock(Modifier.height(16.dp).fillMaxWidth())
+        }
+
+        SkeletonCard {
+            SkeletonBlock(Modifier.height(18.dp).fillMaxWidth(0.35f))
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SkeletonBlock(Modifier.height(32.dp).width(90.dp))
+                SkeletonBlock(Modifier.height(32.dp).width(90.dp))
+                SkeletonBlock(Modifier.height(32.dp).width(90.dp))
+            }
+        }
+
+        SkeletonCard {
+            SkeletonBlock(Modifier.height(18.dp).fillMaxWidth(0.35f))
+            Spacer(Modifier.height(12.dp))
+            SkeletonBlock(Modifier.height(14.dp).fillMaxWidth())
+            Spacer(Modifier.height(8.dp))
+            SkeletonBlock(Modifier.height(14.dp).fillMaxWidth(0.85f))
+        }
+
+        SkeletonCard {
+            SkeletonBlock(Modifier.height(18.dp).fillMaxWidth(0.45f))
+            Spacer(Modifier.height(12.dp))
+            SkeletonBlock(Modifier.height(14.dp).fillMaxWidth())
+            Spacer(Modifier.height(8.dp))
+            SkeletonBlock(Modifier.height(14.dp).fillMaxWidth(0.9f))
+            Spacer(Modifier.height(8.dp))
+            SkeletonBlock(Modifier.height(14.dp).fillMaxWidth(0.75f))
         }
     }
 }
