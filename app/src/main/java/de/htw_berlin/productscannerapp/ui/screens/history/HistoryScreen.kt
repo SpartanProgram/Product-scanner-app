@@ -8,6 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.htw_berlin.productscannerapp.ui.components.EmptyState
+import de.htw_berlin.productscannerapp.ui.components.CategoryTag
+import de.htw_berlin.productscannerapp.ui.components.FoodCategory
+
 
 @Composable
 fun HistoryScreen(
@@ -15,15 +18,38 @@ fun HistoryScreen(
     onOpenItem: (String) -> Unit
 ) {
     // Fake list for now; backend will replace later
-    var history by remember {
-        mutableStateOf(
-            listOf(
-                HistoryItemUi("4006381333931", "Chocolate Bar", "Sample Brand", "2 min ago"),
-                HistoryItemUi("1234567890123", "Pasta", "Brand X", "Yesterday"),
-                HistoryItemUi("978020137962", "Unknown Product", null, "Last week")
+    var history = listOf(
+        HistoryItemUi(
+            barcode = "4006381333931",
+            name = "Chocolate Bar",
+            brand = "Sample Brand",
+            timestampLabel = "2 min ago",
+            categories = listOf(
+                CategoryTag(FoodCategory.VEGETARIAN, "Vegetarian"),
+                CategoryTag(FoodCategory.NON_HALAL, "Non-Halal")
+            )
+        ),
+        HistoryItemUi(
+            barcode = "1234567890123",
+            name = "Pasta",
+            brand = "Brand X",
+            timestampLabel = "Yesterday",
+            categories = listOf(
+                CategoryTag(FoodCategory.VEGAN, "Vegan"),
+                CategoryTag(FoodCategory.HALAL, "Halal")
+            )
+        ),
+        HistoryItemUi(
+            barcode = "978020137962",
+            name = "Unknown Product",
+            brand = null,
+            timestampLabel = "Last week",
+            categories = listOf(
+                CategoryTag(FoodCategory.UNKNOWN, "Unknown")
             )
         )
-    }
+    )
+
 
     if (history.isEmpty()) {
         EmptyState(
