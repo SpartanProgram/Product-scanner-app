@@ -1,11 +1,12 @@
 package de.htw_berlin.productscannerapp.ui.screens.detail
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import de.htw_berlin.productscannerapp.data.AppGraph
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import de.htw_berlin.productscannerapp.ui.components.CategoryTag
-import de.htw_berlin.productscannerapp.ui.components.FoodCategory
+import kotlinx.coroutines.launch
 
 sealed interface ProductDetailState {
     data object Loading : ProductDetailState
@@ -19,24 +20,28 @@ class ProductDetailViewModel : ViewModel() {
     val state: StateFlow<ProductDetailState> = _state
 
     fun load(barcode: String) {
-        // FRONTEND placeholder: your backend teammate will replace this with real repository call
-        _state.update {
-            ProductDetailState.Success(
-                ProductDetailUiState(
-                    name = "Sample Product",
-                    brand = "Brand Name",
-                    barcode = barcode,
-                    categories = listOf(
-                        CategoryTag(FoodCategory.VEGETARIAN, "Vegetarian"),
-                        CategoryTag(FoodCategory.UNKNOWN, "Unknown")
-                    ),
-                    reasons = listOf(
-                        "No meat ingredients listed → vegetarian likely",
-                        "No certification found → halal unknown"
-                    ),
-                    ingredients = "Sugar, Wheat Flour, Milk Powder, Cocoa Butter"
+        _state.value = ProductDetailState.Loading
+
+        viewModelScope.launch {
+            val product = AppGraph.productRepository.getProduct(barcode)
+
+            if (product == null) {
+                _state.value = ProductDetailState.Error("Product not found for barcode: $barcode")
+                return@launch
+            }
+
+            _state.update {
+                ProductDetailState.Success(
+                    ProductDetailUiState(
+                        name = product.name,
+                        brand = product.brand,
+                        barcode = product.barcode,
+                        categories = product.categories,
+                        reasons = product.reasons,
+                        ingredients = product.ingredients
+                    )
                 )
-            )
+            }
         }
     }
 }

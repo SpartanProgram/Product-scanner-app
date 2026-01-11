@@ -3,6 +3,7 @@ package de.htw_berlin.productscannerapp.ui.app
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -10,23 +11,22 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.material3.DrawerValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import de.htw_berlin.productscannerapp.ui.screens.about.AboutScreen
 import de.htw_berlin.productscannerapp.ui.screens.detail.ProductDetailScreen
 import de.htw_berlin.productscannerapp.ui.screens.history.HistoryScreen
-import de.htw_berlin.productscannerapp.ui.screens.scan.ScanScreen
+import de.htw_berlin.productscannerapp.ui.screens.scan.ScanRoute
 import de.htw_berlin.productscannerapp.ui.screens.settings.SettingsScreen
 import kotlinx.coroutines.launch
-import androidx.compose.ui.platform.LocalContext
-import de.htw_berlin.productscannerapp.ui.screens.scan.ScanRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +59,6 @@ fun ProductScannerApp() {
                 onNavigate = { route ->
                     scope.launch { drawerState.close() }
                     navController.navigate(route) {
-                        // avoids building a huge backstack when switching drawer items
                         popUpTo(AppRoute.Scan.route) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
@@ -92,11 +91,11 @@ fun ProductScannerApp() {
                 modifier = Modifier
             ) {
                 composable(AppRoute.Scan.route) {
-                ScanRoute(
+                    ScanRoute(
                         innerPadding = innerPadding,
                         context = context,
                         onBarcode = { code ->
-                            navController.navigate("detail/$code")
+                            navController.navigate(AppRoute.ProductDetail.createRoute(code))
                         }
                     )
                 }
@@ -118,8 +117,12 @@ fun ProductScannerApp() {
                     AboutScreen(innerPadding = innerPadding)
                 }
 
-                composable(AppRoute.ProductDetail.route) { backStackEntry ->
-                    val barcode = backStackEntry.arguments?.getString("barcode").orEmpty()
+                // declare barcode argument for reliability
+                composable(
+                    route = AppRoute.ProductDetail.route,
+                    arguments = listOf(navArgument("barcode") { type = NavType.StringType })
+                ) { entry ->
+                    val barcode = entry.arguments?.getString("barcode").orEmpty()
                     ProductDetailScreen(
                         innerPadding = innerPadding,
                         barcode = barcode

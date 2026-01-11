@@ -146,6 +146,42 @@ private fun ProductDetailContent(
         item {
             Card(Modifier.fillMaxWidth()) {
                 Text(
+                    text = "Categories",
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(Modifier.height(8.dp))
+
+                LazyRow(
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(state.categories) { tag ->
+                        CategoryChip(tag = tag)
+                    }
+                }
+            }
+        }
+        state.ingredients?.let { ing ->
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "Ingredients",
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = ing,
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+        }
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Text(
                     text = "Why this result?",
                     modifier = Modifier.padding(start = 16.dp, top = 16.dp),
                     style = MaterialTheme.typography.titleMedium
