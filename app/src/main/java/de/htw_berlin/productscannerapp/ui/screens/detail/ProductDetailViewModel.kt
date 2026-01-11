@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import de.htw_berlin.productscannerapp.data.AppGraph
+
 
 sealed interface ProductDetailState {
     data object Loading : ProductDetailState
@@ -24,6 +26,24 @@ class ProductDetailViewModel : ViewModel() {
 
         viewModelScope.launch {
             val product = AppGraph.productRepository.getProduct(barcode)
+
+            if (product == null) {
+                _state.value = ProductDetailState.Error("Product not found for barcode: $barcode")
+                return@launch
+            }
+
+            AppGraph.historyRepository.add(product)
+
+            _state.value = ProductDetailState.Success(
+                ProductDetailUiState(
+                    name = product.name,
+                    brand = product.brand,
+                    barcode = product.barcode,
+                    categories = product.categories,
+                    reasons = product.reasons,
+                    ingredients = product.ingredients
+                )
+            )
 
             if (product == null) {
                 _state.value = ProductDetailState.Error("Product not found for barcode: $barcode")
