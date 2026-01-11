@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import de.htw_berlin.productscannerapp.data.AppGraph
 
 
 sealed interface ProductDetailState {
