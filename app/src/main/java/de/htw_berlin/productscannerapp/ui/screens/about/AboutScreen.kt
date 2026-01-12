@@ -33,7 +33,7 @@ fun AboutScreen(innerPadding: PaddingValues) {
                 Text("• Kotlin + Jetpack Compose")
                 Text("• Navigation + ViewModels + Coroutines")
                 Text("• Barcode scanning: Google Code Scanner (Play services)")
-                Text("• Product data: Open Food Facts (planned)")
+                Text("• Product data: Open Food Facts")
             }
         }
 

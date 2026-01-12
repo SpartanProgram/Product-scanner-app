@@ -40,7 +40,7 @@ class RoomHistoryRepository(
                     offCategoriesTags = null,
 
                     categories = cats,
-                    reasons = emptyList()
+                    reasons = listOf("Loaded from history. Re-scan or open with internet for full explanation.")
                 )
             }
         }

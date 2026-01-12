@@ -156,9 +156,13 @@ object ProductClassifier {
             else -> CategoryTag(FoodCategory.UNKNOWN, "Vegan: Unknown")
         }
 
+        val finalReasons = reasons.distinct().ifEmpty {
+            listOf("No strong signals found in Open Food Facts tags or ingredients.")
+        }
+
         return Result(
             tags = listOf(halalTag, vegetarianTag, veganTag),
-            reasons = reasons.distinct()
+            reasons = finalReasons
         )
     }
 }
