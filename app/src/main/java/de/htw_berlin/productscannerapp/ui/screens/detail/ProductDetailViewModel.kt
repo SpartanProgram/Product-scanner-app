@@ -37,7 +37,7 @@ class ProductDetailViewModel : ViewModel() {
                         name = "Unknown product",
                         brand = null,
                         barcode = normalized,
-                        categories = listOf(CategoryTag(FoodCategory.UNKNOWN, "Unknown")),
+                        categories = listOf(CategoryTag(FoodCategory.UNKNOWN)),
                         reasons = listOf(
                             "No product data found OR no internet connection.",
                             "Try again, or scan another product."
