@@ -24,13 +24,27 @@ class ProductDetailViewModel : ViewModel() {
     val state: StateFlow<ProductDetailState> = _state
 
     fun load(barcode: String) {
+        val normalized = barcode.trim().filter(Char::isDigit)
+
         _state.value = ProductDetailState.Loading
 
         viewModelScope.launch {
-            val product = AppGraph.productRepository.getProduct(barcode)
+            val product = AppGraph.productRepository.getProduct(normalized)
 
             if (product == null) {
-                _state.value = ProductDetailState.Error("Product not found for barcode: $barcode")
+                _state.value = ProductDetailState.Success(
+                    ProductDetailUiState(
+                        name = "Unknown product",
+                        brand = null,
+                        barcode = normalized,
+                        categories = listOf(CategoryTag(FoodCategory.UNKNOWN, "Unknown")),
+                        reasons = listOf(
+                            "No product data found OR no internet connection.",
+                            "Try again, or scan another product."
+                        ),
+                        ingredients = null
+                    )
+                )
                 return@launch
             }
 
@@ -46,24 +60,6 @@ class ProductDetailViewModel : ViewModel() {
                     ingredients = product.ingredients
                 )
             )
-
-            if (product == null) {
-                _state.value = ProductDetailState.Error("Product not found for barcode: $barcode")
-                return@launch
-            }
-
-            _state.update {
-                ProductDetailState.Success(
-                    ProductDetailUiState(
-                        name = product.name,
-                        brand = product.brand,
-                        barcode = product.barcode,
-                        categories = product.categories,
-                        reasons = product.reasons,
-                        ingredients = product.ingredients
-                    )
-                )
-            }
         }
     }
 }

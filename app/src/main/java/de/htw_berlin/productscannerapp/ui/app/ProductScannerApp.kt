@@ -95,7 +95,8 @@ fun ProductScannerApp() {
                         innerPadding = innerPadding,
                         context = context,
                         onBarcode = { code ->
-                            navController.navigate(AppRoute.ProductDetail.createRoute(code))
+                            val normalized = code.trim().filter(Char::isDigit)
+                            navController.navigate(AppRoute.ProductDetail.createRoute(normalized))
                         }
                     )
                 }
@@ -123,10 +124,7 @@ fun ProductScannerApp() {
                     arguments = listOf(navArgument("barcode") { type = NavType.StringType })
                 ) { entry ->
                     val barcode = entry.arguments?.getString("barcode").orEmpty()
-                    ProductDetailScreen(
-                        innerPadding = innerPadding,
-                        barcode = barcode
-                    )
+                    ProductDetailScreen(innerPadding = innerPadding, barcode = barcode)
                 }
             }
         }

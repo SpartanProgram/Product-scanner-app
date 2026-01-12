@@ -23,7 +23,9 @@ abstract class ProductScannerDatabase : RoomDatabase() {
                     context.applicationContext,
                     ProductScannerDatabase::class.java,
                     "product_scanner_db"
-                ).build().also { INSTANCE = it }
+                )
+                    .fallbackToDestructiveMigration()
+                    .build().also { INSTANCE = it }
             }
         }
     }

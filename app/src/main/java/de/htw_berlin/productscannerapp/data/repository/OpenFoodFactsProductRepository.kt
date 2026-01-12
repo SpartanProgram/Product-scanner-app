@@ -7,6 +7,8 @@ import de.htw_berlin.productscannerapp.data.remote.off.OpenFoodFactsApi
 import de.htw_berlin.productscannerapp.ui.components.CategoryTag
 import de.htw_berlin.productscannerapp.ui.components.FoodCategory
 import java.io.IOException
+import android.util.Log
+
 
 class OpenFoodFactsProductRepository(
     private val api: OpenFoodFactsApi,
@@ -14,9 +16,12 @@ class OpenFoodFactsProductRepository(
 ) : ProductRepository {
 
     override suspend fun getProduct(barcode: String): Product? {
+        val normalized = barcode.trim().filter(Char::isDigit)
+
         // 1) Try network first
         val fromNetwork: Product? = try {
-            val resp = api.getProduct(barcode)
+            val resp = api.getProduct(normalized)
+            Log.d("OFF", "barcode=$normalized status=${resp.status} productNull=${resp.product == null}")
 
             val ok = (resp.status == 1) && (resp.product != null)
             if (!ok) null else {
@@ -27,7 +32,7 @@ class OpenFoodFactsProductRepository(
                 val ingredients = dto.ingredientsText?.takeIf { it.isNotBlank() }
 
                 val product = Product(
-                    barcode = barcode,
+                    barcode = normalized,
                     name = name,
                     brand = brand,
                     ingredients = ingredients,
@@ -38,10 +43,9 @@ class OpenFoodFactsProductRepository(
                     )
                 )
 
-                // Cache for offline use
                 dao.upsert(
                     CachedProductEntity(
-                        barcode = barcode,
+                        barcode = normalized,
                         name = name,
                         brand = brand,
                         ingredients = ingredients,
@@ -51,25 +55,25 @@ class OpenFoodFactsProductRepository(
 
                 product
             }
-        } catch (_: IOException) {
-            null // offline / DNS / timeout -> fallback to cache
-        } catch (_: Exception) {
-            null // keep skeleton simple; fallback to cache
+        } catch (e: IOException) {
+            Log.e("OFF", "Network IO failed for $normalized", e)
+            null
+        } catch (e: Exception) {
+            Log.e("OFF", "Network failed for $normalized", e)
+            null
         }
 
         if (fromNetwork != null) return fromNetwork
 
         // 2) Offline fallback (Room)
-        val cached = dao.getByBarcode(barcode) ?: return null
+        val cached = dao.getByBarcode(normalized) ?: return null
         return Product(
             barcode = cached.barcode,
             name = cached.name,
             brand = cached.brand,
             ingredients = cached.ingredients,
             categories = listOf(CategoryTag(FoodCategory.UNKNOWN, "Unknown")),
-            reasons = listOf(
-                "Showing cached data (offline fallback)."
-            )
+            reasons = listOf("Showing cached data (offline fallback).")
         )
     }
 }

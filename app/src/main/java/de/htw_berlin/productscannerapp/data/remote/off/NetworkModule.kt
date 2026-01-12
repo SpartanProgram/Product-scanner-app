@@ -1,5 +1,7 @@
 package de.htw_berlin.productscannerapp.data.remote
 
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import de.htw_berlin.productscannerapp.data.remote.off.OpenFoodFactsApi
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -29,11 +31,18 @@ object NetworkModule {
             .build()
     }
 
+    // Moshi with Kotlin adapter
+    private val moshi: Moshi by lazy {
+        Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+    }
+
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttp)
-            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create(moshi)) // ✅ use moshi here
             .build()
     }
 

@@ -14,8 +14,8 @@ sealed class AppRoute(val route: String) {
     data object About : AppRoute("about")
 
     // Nested screen (not in drawer)
-    data object ProductDetail : AppRoute("product/{barcode}") {
-        fun createRoute(barcode: String) = "product/$barcode"
+    data object ProductDetail : AppRoute("detail/{barcode}") {
+        fun createRoute(barcode: String) = "detail/$barcode"
     }
 }
 
