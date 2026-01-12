@@ -7,6 +7,13 @@ data class Product(
     val name: String,
     val brand: String?,
     val ingredients: String?,
+
+    val imageUrl: String? = null,
+    val quantity: String? = null,
+    val nutriScoreGrade: String? = null,
+    val offCategories: String? = null,
+    val offCategoriesTags: List<String>? = null,
+
     val categories: List<CategoryTag>,
     val reasons: List<String>
 )

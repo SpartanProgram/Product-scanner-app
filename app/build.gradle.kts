@@ -76,4 +76,5 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
     ksp("androidx.room:room-compiler:2.6.1")
     implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }

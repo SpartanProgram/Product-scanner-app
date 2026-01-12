@@ -6,9 +6,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 class InMemoryHistoryRepository : HistoryRepository {
-
-    private val _items = MutableStateFlow<List<Product>>(emptyList())
-    override val items: StateFlow<List<Product>> = _items
+    private val _items = kotlinx.coroutines.flow.MutableStateFlow<List<Product>>(emptyList())
+    override val items: kotlinx.coroutines.flow.StateFlow<List<Product>> = _items
 
     override suspend fun add(product: Product) {
         _items.update { current ->
@@ -21,3 +20,4 @@ class InMemoryHistoryRepository : HistoryRepository {
         _items.value = emptyList()
     }
 }
+

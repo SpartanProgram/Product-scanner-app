@@ -16,26 +16,39 @@ class RoomHistoryRepository(
     override val items: Flow<List<Product>> =
         dao.observeAll().map { list ->
             list.map { e ->
-                val categories = e.categoriesCsv
+                val cats = e.categoriesCsv
                     .split(",")
                     .map { it.trim() }
                     .filter { it.isNotBlank() }
-                    .mapNotNull { raw -> runCatching { FoodCategory.valueOf(raw) }.getOrNull() }
-                    .map { cat -> CategoryTag(category = cat) }
+                    .take(3) // we store 3
+                    .mapIndexed { index, raw ->
+                        val cat = runCatching { FoodCategory.valueOf(raw) }.getOrNull() ?: FoodCategory.UNKNOWN
+                        CategoryTag(category = cat, label = labelForDimension(cat, index))
+                    }
+                    .padTo3()
 
                 Product(
                     barcode = e.barcode,
                     name = e.name,
                     brand = e.brand,
                     ingredients = e.ingredients,
-                    categories = categories,
+
+                    imageUrl = null,
+                    quantity = null,
+                    nutriScoreGrade = null,
+                    offCategories = null,
+                    offCategoriesTags = null,
+
+                    categories = cats,
                     reasons = emptyList()
                 )
             }
         }
 
     override suspend fun add(product: Product) {
-        val csv = product.categories.joinToString(",") { it.category.name }
+        // Ensure we store exactly 3 tags in the right order
+        val three = product.categories.take(3).padTo3()
+        val csv = three.joinToString(",") { it.category.name }
 
         dao.upsert(
             HistoryEntity(
@@ -51,5 +64,29 @@ class RoomHistoryRepository(
 
     override suspend fun clear() {
         dao.clearAll()
+    }
+
+    private fun labelForDimension(cat: FoodCategory, index: Int): String {
+        return if (cat != FoodCategory.UNKNOWN) {
+            cat.defaultLabel()
+        } else {
+            when (index) {
+                0 -> "Halal: Unknown"
+                1 -> "Vegetarian: Unknown"
+                2 -> "Vegan: Unknown"
+                else -> "Info"
+            }
+        }
+    }
+
+    private fun List<CategoryTag>.padTo3(): List<CategoryTag> {
+        if (size >= 3) return take(3)
+        val missing = 3 - size
+        val fillers = (0 until missing).map { i ->
+            // continue the dimension index from current size
+            val idx = size + i
+            CategoryTag(FoodCategory.UNKNOWN, labelForDimension(FoodCategory.UNKNOWN, idx))
+        }
+        return this + fillers
     }
 }

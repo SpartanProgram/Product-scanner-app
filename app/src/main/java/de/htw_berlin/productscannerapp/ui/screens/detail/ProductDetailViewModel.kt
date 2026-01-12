@@ -3,14 +3,11 @@ package de.htw_berlin.productscannerapp.ui.screens.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import de.htw_berlin.productscannerapp.data.AppGraph
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import de.htw_berlin.productscannerapp.ui.components.CategoryTag
 import de.htw_berlin.productscannerapp.ui.components.FoodCategory
-
-
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 sealed interface ProductDetailState {
     data object Loading : ProductDetailState
@@ -25,7 +22,6 @@ class ProductDetailViewModel : ViewModel() {
 
     fun load(barcode: String) {
         val normalized = barcode.trim().filter(Char::isDigit)
-
         _state.value = ProductDetailState.Loading
 
         viewModelScope.launch {
@@ -42,7 +38,14 @@ class ProductDetailViewModel : ViewModel() {
                             "No product data found OR no internet connection.",
                             "Try again, or scan another product."
                         ),
-                        ingredients = null
+                        ingredients = null,
+
+                        // Option B fields
+                        imageUrl = null,
+                        quantity = null,
+                        nutriScoreGrade = null,
+                        offCategories = null,
+                        offCategoriesTags = null
                     )
                 )
                 return@launch
@@ -57,7 +60,14 @@ class ProductDetailViewModel : ViewModel() {
                     barcode = product.barcode,
                     categories = product.categories,
                     reasons = product.reasons,
-                    ingredients = product.ingredients
+                    ingredients = product.ingredients,
+
+                    // Option B fields
+                    imageUrl = product.imageUrl,
+                    quantity = product.quantity,
+                    nutriScoreGrade = product.nutriScoreGrade,
+                    offCategories = product.offCategories,
+                    offCategoriesTags = product.offCategoriesTags
                 )
             )
         }

@@ -16,9 +16,11 @@ class OpenFoodFactsProductRepository(
     override suspend fun getProduct(barcode: String): Product? {
         val normalized = barcode.trim().filter(Char::isDigit)
 
-        // 1) Try network first
+        // Try network first
         val fromNetwork: Product? = try {
-            val resp = api.getProduct(normalized)
+            // pass lc (German readable data when available)
+            val resp = api.getProduct(normalized, lc = "de")
+
             Log.d("OFF", "barcode=$normalized status=${resp.status} productNull=${resp.product == null}")
 
             val ok = (resp.status == 1) && (resp.product != null)
@@ -29,12 +31,20 @@ class OpenFoodFactsProductRepository(
                 val brand = dto.brands?.takeIf { it.isNotBlank() }
                 val ingredients = dto.ingredientsText?.takeIf { it.isNotBlank() }
 
+                val imageUrl = dto.imageFrontUrl?.takeIf { it.isNotBlank() }
+                val quantity = dto.quantity?.takeIf { it.isNotBlank() }
+                val nutriScoreGrade = dto.nutriscoreGrade?.takeIf { it.isNotBlank() }
+                val offCategories = dto.categories?.takeIf { it.isNotBlank() }
+                val offCategoriesTags = dto.categoriesTags
+
+                // Classification (OFF tags + ingredients)
                 val cls = ProductClassifier.classify(
                     ingredientsText = ingredients,
                     ingredientsAnalysisTags = dto.ingredientsAnalysisTags,
                     labelsTags = dto.labelsTags
                 )
 
+                // Cache for offline use (still only caching core fields)
                 dao.upsert(
                     CachedProductEntity(
                         barcode = normalized,
@@ -50,6 +60,13 @@ class OpenFoodFactsProductRepository(
                     name = name,
                     brand = brand,
                     ingredients = ingredients,
+
+                    imageUrl = imageUrl,
+                    quantity = quantity,
+                    nutriScoreGrade = nutriScoreGrade,
+                    offCategories = offCategories,
+                    offCategoriesTags = offCategoriesTags,
+
                     categories = cls.tags,
                     reasons = cls.reasons
                 )
@@ -66,13 +83,25 @@ class OpenFoodFactsProductRepository(
 
         // 2) Offline fallback (Room) + re-classify from cached ingredients
         val cached = dao.getByBarcode(normalized) ?: return null
-        val cls = ProductClassifier.classify(cached.ingredients, null, null)
+        val cls = ProductClassifier.classify(
+            ingredientsText = cached.ingredients,
+            ingredientsAnalysisTags = null,
+            labelsTags = null
+        )
 
         return Product(
             barcode = cached.barcode,
             name = cached.name,
             brand = cached.brand,
             ingredients = cached.ingredients,
+
+            // Offline: we didn't cache these yet, so null
+            imageUrl = null,
+            quantity = null,
+            nutriScoreGrade = null,
+            offCategories = null,
+            offCategoriesTags = null,
+
             categories = cls.tags,
             reasons = listOf("Showing cached data (offline fallback).") + cls.reasons
         )

@@ -23,6 +23,9 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.HorizontalDivider
 import de.htw_berlin.productscannerapp.ui.components.triadCategories
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+
 
 @Composable
 fun ProductDetailScreen(
@@ -129,6 +132,48 @@ private fun ProductDetailContent(
                             context.startActivity(Intent.createChooser(intent, "Share product"))
                         }) {
                             Icon(Icons.Outlined.Share, contentDescription = "Share")
+                        }
+                    }
+                }
+            }
+        }
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column {
+                    if (!state.imageUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = state.imageUrl,
+                            contentDescription = "Product image",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        // simple fallback block if no image
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(140.dp),
+                            contentAlignment = androidx.compose.ui.Alignment.Center
+                        ) {
+                            Text(
+                                "No image available",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    // Extra fields
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        state.quantity?.let { Text("Quantity: $it") }
+                        state.nutriScoreGrade?.let { Text("Nutri-Score: ${it.uppercase()}") }
+                        state.offCategories?.let {
+                            Text(
+                                text = "Categories: $it",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
