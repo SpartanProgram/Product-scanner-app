@@ -31,7 +31,6 @@ object NetworkModule {
             .build()
     }
 
-    // Moshi with Kotlin adapter
     private val moshi: Moshi by lazy {
         Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
@@ -42,11 +41,9 @@ object NetworkModule {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttp)
-            .addConverterFactory(MoshiConverterFactory.create(moshi)) // ✅ use moshi here
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
     }
 
-    val openFoodFactsApi: OpenFoodFactsApi by lazy {
-        retrofit.create(OpenFoodFactsApi::class.java)
-    }
+    val openFoodFactsApi: OpenFoodFactsApi = retrofit.create(OpenFoodFactsApi::class.java)
 }

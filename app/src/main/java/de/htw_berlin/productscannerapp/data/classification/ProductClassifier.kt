@@ -2,6 +2,7 @@ package de.htw_berlin.productscannerapp.data.classification
 
 import de.htw_berlin.productscannerapp.ui.components.CategoryTag
 import de.htw_berlin.productscannerapp.ui.components.FoodCategory
+import de.htw_berlin.productscannerapp.ui.components.defaultLabel
 import java.text.Normalizer
 import java.util.Locale
 
@@ -19,119 +20,146 @@ object ProductClassifier {
         return noDiacritics.replace("ß", "ss")
     }
 
-    private fun String.containsAnyRegex(vararg patterns: Regex): Boolean =
-        patterns.any { it.containsMatchIn(this) }
+    private fun normTag(raw: String): String =
+        normalizeForMatch(raw).trim()
 
-    fun classify(ingredientsText: String?): Result {
+    private fun tagKey(raw: String): String =
+        normTag(raw).substringAfter(":", normTag(raw)) // "en:vegan" -> "vegan"
+
+    fun classify(
+        ingredientsText: String?,
+        ingredientsAnalysisTags: List<String>? = null,
+        labelsTags: List<String>? = null
+    ): Result {
+
         val ing = normalizeForMatch(ingredientsText).trim()
-
-        if (ing.isBlank()) {
-            return Result(
-                tags = listOf(CategoryTag(FoodCategory.UNKNOWN)),
-                reasons = listOf("No ingredients text found.")
-            )
-        }
-
-        // =========================
-        // 2) Upgraded keyword rules (DE/FR/EN)
-        // =========================
-
-        // 🥩 Meat / Not vegetarian
-        val meatPatterns = arrayOf(
-            Regex("""\b(meat|viande|fleisch)\b"""),
-            Regex("""\b(beef|boeuf|rind|rindfleisch)\b"""),
-            Regex("""\b(pork|porc|schwein|schweinefleisch)\b"""),
-            Regex("""\b(bacon|speck|schinken|jambon|lard|saindoux)\b"""),
-            Regex("""\b(salami|wurst|bratwurst|saucisson|saucisse)\b"""),
-            Regex("""\b(chicken|poulet|huhn|hahnchen|haehnchen)\b"""),
-            Regex("""\b(turkey|dinde|pute|truthahn)\b"""),
-            Regex("""\b(duck|canard|ente)\b"""),
-            Regex("""\b(goose|oie|gans)\b"""),
-            Regex("""\b(lamb|agneau|lamm)\b"""),
-            Regex("""\b(veal|veau|kalb|kalbfleisch)\b"""),
-            Regex("""\b(game|gibier|wild)\b""")
-        )
-
-        // ❌ Pork (for "not allowed")
-        val porkPatterns = arrayOf(
-            Regex("""\b(pork|porc|schwein|schweinefleisch)\b"""),
-            Regex("""\b(bacon|speck|schinken|jambon|lard|saindoux)\b""")
-        )
-
-        // ❌ Gelatin (best-effort)
-        val gelatinPatterns = arrayOf(
-            Regex("""\b(gelatin|gelatine|gelatina)\b"""),
-            Regex("""\b(e441)\b""")
-        )
-
-        // ❌ Alcohol
-        // NOTE: avoid false positive for "alkoholfrei" / "sans alcool"
-        val isAlcoholFree = ing.contains("alkoholfrei") || ing.contains("sans alcool")
-
-        val alcoholPatterns = arrayOf(
-            Regex("""\b(alcohol|alcool|alkohol|ethanol)\b"""),
-            Regex("""\b(wine|vin|wein|weinbrand)\b"""),
-            Regex("""\b(beer|biere|bier|weizenbier)\b"""),
-            Regex("""\b(rum|rhum|brandy|cognac|whisky|whiskey|vodka|liqueur|likor|likoer)\b""")
-        )
-
-        // 🚫 Not vegan (dairy/egg/honey)
-        val nonVeganPatterns = arrayOf(
-            Regex("""\b(milk|lait|milch)\b"""),
-            Regex("""\b(butter|beurre)\b"""),
-            Regex("""\b(cream|creme|sahne|rahm)\b"""),
-            Regex("""\b(cheese|fromage|kaese|kase)\b"""),
-            Regex("""\b(whey|molke|lactoserum|petit[- ]lait)\b"""),
-            Regex("""\b(casein|kasein)\b"""),
-            Regex("""\b(lactose|laktose)\b"""),
-            Regex("""\b(egg|oeuf|eier)\b"""),
-            Regex("""\b(honey|miel|honig)\b"""),
-            Regex("""\b(yogurt|yaourt|joghurt|yoghurt)\b""")
-        )
+        val offAnalysis = (ingredientsAnalysisTags ?: emptyList()).map(::tagKey).toSet()
+        val offLabels = (labelsTags ?: emptyList()).map(::tagKey).toSet()
 
         val reasons = mutableListOf<String>()
-        val tags = mutableListOf<FoodCategory>()
+        val tags = mutableSetOf<FoodCategory>()
 
-        val hasMeat = ing.containsAnyRegex(*meatPatterns)
-        val hasPork = ing.containsAnyRegex(*porkPatterns)
-        val hasGelatin = ing.containsAnyRegex(*gelatinPatterns)
-        val hasAlcohol = !isAlcoholFree && ing.containsAnyRegex(*alcoholPatterns)
-        val hasNonVegan = ing.containsAnyRegex(*nonVeganPatterns)
+        // =========================
+        // A) OFF tags (strong signals)
+        // =========================
+        val offNonVegan = "non-vegan" in offAnalysis
+        val offVegan = "vegan" in offAnalysis
+        val offNonVegetarian = "non-vegetarian" in offAnalysis
+        val offVegetarian = "vegetarian" in offAnalysis
 
-        // 1) ❌ Not allowed (NON_HALAL)
+        if (offNonVegetarian) {
+            tags += FoodCategory.NOT_VEGETARIAN
+            reasons += "Open Food Facts: ingredients analysis says non-vegetarian."
+        }
+        if (offNonVegan) {
+            tags += FoodCategory.NOT_VEGAN
+            reasons += "Open Food Facts: ingredients analysis says non-vegan."
+        }
+
+        // Apply positive tags only if not contradicted by negative ones
+        if (!tags.contains(FoodCategory.NOT_VEGAN) && offVegan) {
+            tags += FoodCategory.VEGAN
+            reasons += "Open Food Facts: ingredients analysis says vegan."
+        }
+        if (!tags.contains(FoodCategory.NOT_VEGETARIAN) && offVegetarian) {
+            tags += FoodCategory.VEGETARIAN
+            reasons += "Open Food Facts: ingredients analysis says vegetarian."
+        }
+
+        // “halal” label tag (positive only; absence != non-halal)
+        val offHalal = offLabels.any { it == "halal" || it.contains("halal") }
+        if (offHalal) {
+            tags += FoodCategory.HALAL
+            reasons += "Open Food Facts: halal label tag found."
+        }
+
+        // =========================
+        // B) Ingredient keyword fallback (best-effort)
+        // =========================
+        if (ing.isBlank()) {
+            if (tags.isEmpty()) {
+                tags += FoodCategory.UNKNOWN
+                reasons += "No ingredients text found."
+            }
+            return finalize(tags, reasons)
+        }
+
+        // meat (EN + DE + FR)
+        val meatKeywords = listOf(
+            // EN
+            "beef","pork","chicken","turkey","lamb","veal","duck",
+            "bacon","ham","sausage","meat",
+            // DE
+            "fleisch","rind","rindfleisch","schwein","schweinefleisch","huhn","hahnchen","pute","lamm",
+            "speck","schinken","wurst","gelatine","gelatin",
+            // FR
+            "viande","porc","boeuf","poulet","dinde","agneau","jambon","saucisse","gelatine","gélatine"
+        )
+
+        val porkSpecific = listOf(
+            "pork","bacon","ham","lard",
+            "schwein","schweinefleisch","speck","schinken","schmalz",
+            "porc","jambon","lard"
+        )
+
+        val alcoholKeywords = listOf(
+            "alcohol","ethanol","wine","beer","rum","brandy","liqueur",
+            "bier","weizenbier","wein","sekt","likor","liqueur",
+            "biere","vin","rhum"
+        )
+
+        val nonVeganKeywords = listOf(
+            "milk","butter","cream","cheese","whey","casein","lactose",
+            "egg","eggs","honey","yogurt",
+            // DE
+            "milch","butter","sahne","rahm","kase","käse","molke","kasein","casein","laktose",
+            "ei","eier","honig","joghurt",
+            // FR
+            "lait","beurre","creme","crème","fromage","lactose","oeuf","œuf","miel","yaourt"
+        )
+
+        val hasMeat = meatKeywords.any { ing.contains(it) }
+        val hasPork = porkSpecific.any { ing.contains(it) }
+        val hasAlcohol = alcoholKeywords.any { ing.contains(it) }
+        val hasNonVegan = nonVeganKeywords.any { ing.contains(it) }
+        val hasGelatin = ing.contains("gelatin") || ing.contains("gelatine") || ing.contains("gélatine")
+
+        // ❌ Non-halal signals from ingredients (conservative)
         if (hasPork || hasAlcohol || hasGelatin) {
             tags += FoodCategory.NON_HALAL
-            reasons += "Detected pork/alcohol/gelatin keyword(s) → not allowed (best-effort)."
+            reasons += "Detected alcohol/pork/gelatin in ingredients → not allowed (best-effort)."
         }
 
-        // 2) 🥩 Contains meat (NOT_VEGETARIAN)
         if (hasMeat) {
             tags += FoodCategory.NOT_VEGETARIAN
-            reasons += "Detected meat keyword(s) → contains meat (best-effort)."
-        } else {
-            reasons += "No meat keywords detected → likely vegetarian."
+            reasons += "Detected meat keyword(s) in ingredients → contains meat (best-effort)."
         }
 
-        // 3) 🚫 Not vegan (NOT_VEGAN)
         if (hasNonVegan) {
             tags += FoodCategory.NOT_VEGAN
-            reasons += "Detected dairy/egg/honey keyword(s) → not vegan (best-effort)."
+            reasons += "Detected dairy/egg/honey in ingredients → not vegan (best-effort)."
         }
 
-        // 4) Positive label (VEGAN / VEGETARIAN) when safe
-        val isVegetarian = !hasMeat
-        val isVegan = !hasMeat && !hasNonVegan
+        // Positive inferences only when not contradicted
+        if (!tags.contains(FoodCategory.NOT_VEGAN) && !tags.contains(FoodCategory.NOT_VEGETARIAN)) {
+            tags += FoodCategory.VEGAN
+            reasons += "No meat + no animal-derived keywords detected → likely vegan (best-effort)."
+        } else if (!tags.contains(FoodCategory.NOT_VEGETARIAN)) {
+            tags += FoodCategory.VEGETARIAN
+            reasons += "No meat keywords detected → likely vegetarian (best-effort)."
+        }
 
-        if (isVegan) tags += FoodCategory.VEGAN
-        else if (isVegetarian) tags += FoodCategory.VEGETARIAN
-
-        // 5) Allowed (HALAL) only if not flagged as NON_HALAL
-        if (!tags.contains(FoodCategory.NON_HALAL)) {
+        // If not flagged as NON_HALAL, we can show HALAL as “no obvious haram found”
+        if (!tags.contains(FoodCategory.NON_HALAL) && !tags.contains(FoodCategory.HALAL)) {
             tags += FoodCategory.HALAL
+            reasons += "No alcohol/pork/gelatin detected → allowed (best-effort)."
         }
 
-        // Keep order clean + unique
-        val ordered = listOf(
+        return finalize(tags, reasons)
+    }
+
+    private fun finalize(tags: Set<FoodCategory>, reasons: List<String>): Result {
+        val order = listOf(
             FoodCategory.NON_HALAL,
             FoodCategory.NOT_VEGETARIAN,
             FoodCategory.NOT_VEGAN,
@@ -141,10 +169,10 @@ object ProductClassifier {
             FoodCategory.UNKNOWN
         )
 
-        val finalCats = ordered.filter { it in tags }.distinct()
+        val finalCats = order.filter { it in tags }.distinct()
 
         return Result(
-            tags = finalCats.map { CategoryTag(it) },
+            tags = finalCats.map { CategoryTag(category = it, label = it.defaultLabel()) },
             reasons = reasons.distinct()
         )
     }
