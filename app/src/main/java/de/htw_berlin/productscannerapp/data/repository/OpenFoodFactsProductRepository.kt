@@ -8,6 +8,7 @@ import de.htw_berlin.productscannerapp.data.remote.off.OpenFoodFactsApi
 import de.htw_berlin.productscannerapp.ui.components.CategoryTag
 import de.htw_berlin.productscannerapp.ui.components.FoodCategory
 import java.io.IOException
+import de.htw_berlin.productscannerapp.data.classification.ProductClassifier
 
 class OpenFoodFactsProductRepository(
     private val api: OpenFoodFactsApi,
@@ -104,13 +105,15 @@ class OpenFoodFactsProductRepository(
                     categories += CategoryTag(FoodCategory.UNKNOWN, "Unknown")
                 }
 
+                val classified = ProductClassifier.classify(ingredients)
+
                 val product = Product(
                     barcode = normalized,
                     name = name,
                     brand = brand,
                     ingredients = ingredients,
-                    categories = categories,
-                    reasons = reasons
+                    categories = classified.tags,
+                    reasons = listOf("Data fetched from Open Food Facts.") + classified.reasons
                 )
 
                 // Cache for offline use
@@ -138,13 +141,15 @@ class OpenFoodFactsProductRepository(
 
         // 2) Offline fallback (Room)
         val cached = dao.getByBarcode(normalized) ?: return null
+        val classified = ProductClassifier.classify(cached.ingredients)
+
         return Product(
             barcode = cached.barcode,
             name = cached.name,
             brand = cached.brand,
             ingredients = cached.ingredients,
-            categories = listOf(CategoryTag(FoodCategory.UNKNOWN, "Unknown")),
-            reasons = listOf("Showing cached data (offline fallback).")
+            categories = classified.tags,
+            reasons = listOf("Showing cached data (offline fallback).") + classified.reasons
         )
     }
 }
