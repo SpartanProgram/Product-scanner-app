@@ -1,4 +1,3 @@
-// ui/components/CategoryModels.kt
 package de.htw_berlin.productscannerapp.ui.components
 
 enum class FoodCategory {
@@ -8,7 +7,7 @@ enum class FoodCategory {
     NON_HALAL,
     NOT_VEGAN,
     NOT_VEGETARIAN,
-    UNKNOWN
+    UNKNOWN,
 }
 
 data class CategoryTag(

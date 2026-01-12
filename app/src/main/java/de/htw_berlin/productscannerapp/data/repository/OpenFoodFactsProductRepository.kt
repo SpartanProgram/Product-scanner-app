@@ -105,15 +105,15 @@ class OpenFoodFactsProductRepository(
                     categories += CategoryTag(FoodCategory.UNKNOWN, "Unknown")
                 }
 
-                val classified = ProductClassifier.classify(ingredients)
+                val classification = ProductClassifier.classify(ingredients)
 
                 val product = Product(
                     barcode = normalized,
                     name = name,
                     brand = brand,
                     ingredients = ingredients,
-                    categories = classified.tags,
-                    reasons = listOf("Data fetched from Open Food Facts.") + classified.reasons
+                    categories = classification.tags,
+                    reasons = listOf("Data fetched from Open Food Facts.") + classification.reasons
                 )
 
                 // Cache for offline use
@@ -141,15 +141,15 @@ class OpenFoodFactsProductRepository(
 
         // 2) Offline fallback (Room)
         val cached = dao.getByBarcode(normalized) ?: return null
-        val classified = ProductClassifier.classify(cached.ingredients)
+        val classification = ProductClassifier.classify(cached.ingredients)
 
         return Product(
             barcode = cached.barcode,
             name = cached.name,
             brand = cached.brand,
             ingredients = cached.ingredients,
-            categories = classified.tags,
-            reasons = listOf("Showing cached data (offline fallback).") + classified.reasons
+            categories = classification.tags,
+            reasons = listOf("Showing cached data (offline fallback).") + classification.reasons
         )
     }
 }
