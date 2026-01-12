@@ -56,7 +56,6 @@ object ProductClassifier {
             reasons += "Open Food Facts: ingredients analysis says non-vegan."
         }
 
-        // Apply positive tags only if not contradicted by negative ones
         if (!tags.contains(FoodCategory.NOT_VEGAN) && offVegan) {
             tags += FoodCategory.VEGAN
             reasons += "Open Food Facts: ingredients analysis says vegan."
@@ -66,7 +65,7 @@ object ProductClassifier {
             reasons += "Open Food Facts: ingredients analysis says vegetarian."
         }
 
-        // “halal” label tag (positive only; absence != non-halal)
+        // Only show HALAL if OFF explicitly provides it (no inference!)
         val offHalal = offLabels.any { it == "halal" || it.contains("halal") }
         if (offHalal) {
             tags += FoodCategory.HALAL
@@ -88,10 +87,10 @@ object ProductClassifier {
         val meatKeywords = listOf(
             // EN
             "beef","pork","chicken","turkey","lamb","veal","duck",
-            "bacon","ham","sausage","meat",
+            "bacon","ham","sausage","meat","gelatin","gelatine",
             // DE
             "fleisch","rind","rindfleisch","schwein","schweinefleisch","huhn","hahnchen","pute","lamm",
-            "speck","schinken","wurst","gelatine","gelatin",
+            "speck","schinken","wurst","gelatine",
             // FR
             "viande","porc","boeuf","poulet","dinde","agneau","jambon","saucisse","gelatine","gélatine"
         )
@@ -124,15 +123,15 @@ object ProductClassifier {
         val hasNonVegan = nonVeganKeywords.any { ing.contains(it) }
         val hasGelatin = ing.contains("gelatin") || ing.contains("gelatine") || ing.contains("gélatine")
 
-        // ❌ Non-halal signals from ingredients (conservative)
+        // Non-halal signals (conservative)
         if (hasPork || hasAlcohol || hasGelatin) {
             tags += FoodCategory.NON_HALAL
-            reasons += "Detected alcohol/pork/gelatin in ingredients → not allowed (best-effort)."
+            reasons += "Detected pork/alcohol/gelatin in ingredients → non-halal (best-effort)."
         }
 
         if (hasMeat) {
             tags += FoodCategory.NOT_VEGETARIAN
-            reasons += "Detected meat keyword(s) in ingredients → contains meat (best-effort)."
+            reasons += "Detected meat keyword(s) in ingredients → not vegetarian (best-effort)."
         }
 
         if (hasNonVegan) {
@@ -149,11 +148,8 @@ object ProductClassifier {
             reasons += "No meat keywords detected → likely vegetarian (best-effort)."
         }
 
-        // If not flagged as NON_HALAL, we can show HALAL as “no obvious haram found”
-        if (!tags.contains(FoodCategory.NON_HALAL) && !tags.contains(FoodCategory.HALAL)) {
-            tags += FoodCategory.HALAL
-            reasons += "No alcohol/pork/gelatin detected → allowed (best-effort)."
-        }
+        // IMPORTANT: do NOT infer HALAL from “no bad keywords found”
+        // (HALAL only comes from OFF labels_tags)
 
         return finalize(tags, reasons)
     }

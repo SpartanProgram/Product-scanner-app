@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.HorizontalDivider
+import de.htw_berlin.productscannerapp.ui.components.triadCategories
 
 @Composable
 fun ProductDetailScreen(
@@ -142,12 +143,14 @@ private fun ProductDetailContent(
                 )
                 Spacer(Modifier.height(8.dp))
 
+                val triad = triadCategories(state.categories)
+
                 LazyRow(
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(state.categories) { tag ->
-                        CategoryChip(tag = tag)
+                    items(triad) { tag ->
+                        CategoryChip(tag = tag, modifier = Modifier)
                     }
                 }
             }
