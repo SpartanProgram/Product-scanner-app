@@ -85,16 +85,6 @@ private fun ProductDetailContent(
             }
         }
         item {
-            Text(state.name, style = MaterialTheme.typography.headlineSmall)
-            state.brand?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        item {
             val context = LocalContext.current
             val clipboard = LocalClipboardManager.current
 
