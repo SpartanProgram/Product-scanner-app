@@ -6,18 +6,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 
 class InMemoryHistoryRepository : HistoryRepository {
+
     private val _items = MutableStateFlow<List<Product>>(emptyList())
     override val items: StateFlow<List<Product>> = _items
 
-    override fun add(product: Product) {
+    override suspend fun add(product: Product) {
         _items.update { current ->
-            // keep newest first, no duplicates by barcode
             val without = current.filterNot { it.barcode == product.barcode }
             listOf(product) + without
         }
     }
 
-    override fun clear() {
+    override suspend fun clear() {
         _items.value = emptyList()
     }
 }

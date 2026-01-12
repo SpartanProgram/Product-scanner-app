@@ -6,14 +6,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [CachedProductEntity::class],
-    version = 1,
+    entities = [CachedProductEntity::class, HistoryEntity::class],
+    version = 2,
     exportSchema = false
 )
 abstract class ProductScannerDatabase : RoomDatabase() {
 
     abstract fun productDao(): ProductDao
-
+    abstract fun historyDao(): HistoryDao
     companion object {
         @Volatile private var INSTANCE: ProductScannerDatabase? = null
 

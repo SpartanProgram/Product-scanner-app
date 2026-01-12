@@ -1,12 +1,13 @@
 package de.htw_berlin.productscannerapp.ui.screens.history
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import de.htw_berlin.productscannerapp.data.AppGraph
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.launch
 
 class HistoryViewModel : ViewModel() {
 
@@ -26,6 +27,8 @@ class HistoryViewModel : ViewModel() {
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun clear() {
-        AppGraph.historyRepository.clear()
+        viewModelScope.launch {
+            AppGraph.historyRepository.clear()
+        }
     }
 }
