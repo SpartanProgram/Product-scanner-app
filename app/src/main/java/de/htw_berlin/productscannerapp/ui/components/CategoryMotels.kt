@@ -1,8 +1,18 @@
 package de.htw_berlin.productscannerapp.ui.components
 
 enum class FoodCategory {
-    HALAL, NON_HALAL, VEGETARIAN, VEGAN, UNKNOWN
+    VEGAN,
+    VEGETARIAN,
+    HALAL,
+    NON_HALAL,
+    NOT_VEGAN,
+    NOT_VEGETARIAN,
+
+    UNKNOWN,
+
 }
+
+
 
 data class CategoryTag(
     val category: FoodCategory,
