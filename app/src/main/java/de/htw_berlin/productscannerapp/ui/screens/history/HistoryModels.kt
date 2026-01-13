@@ -7,5 +7,8 @@ data class HistoryItemUi(
     val name: String,
     val brand: String? = null,
     val timestampLabel: String = "Just now",
-    val categories: List<CategoryTag> = emptyList()
+    val categories: List<CategoryTag> = emptyList(),
+    val quantity: String?,
+    val nutriScoreGrade: String?
+
 )

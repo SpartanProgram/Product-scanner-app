@@ -20,7 +20,9 @@ class HistoryViewModel : ViewModel() {
                         name = p.name,
                         brand = p.brand,
                         timestampLabel = "Recently",
-                        categories = p.categories
+                        categories = p.categories,
+                        quantity = p.quantity,
+                        nutriScoreGrade = p.nutriScoreGrade
                     )
                 }
             }

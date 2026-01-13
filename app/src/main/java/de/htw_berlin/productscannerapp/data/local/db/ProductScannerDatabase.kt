@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [CachedProductEntity::class, HistoryEntity::class],
-    version = 3, // bump
+    version = 4,
     exportSchema = false
 )
 abstract class ProductScannerDatabase : RoomDatabase() {
@@ -21,12 +21,12 @@ abstract class ProductScannerDatabase : RoomDatabase() {
     companion object {
         @Volatile private var INSTANCE: ProductScannerDatabase? = null
 
-        // Migration 2 -> 3: add reasonsText column
-        private val MIGRATION_2_3 = object : Migration(2, 3) {
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL(
-                    "ALTER TABLE history ADD COLUMN reasonsText TEXT NOT NULL DEFAULT ''"
-                )
+                db.execSQL("ALTER TABLE history ADD COLUMN imageUrl TEXT")
+                db.execSQL("ALTER TABLE history ADD COLUMN quantity TEXT")
+                db.execSQL("ALTER TABLE history ADD COLUMN nutriScoreGrade TEXT")
+                db.execSQL("ALTER TABLE history ADD COLUMN offCategories TEXT")
             }
         }
 
@@ -37,8 +37,8 @@ abstract class ProductScannerDatabase : RoomDatabase() {
                     ProductScannerDatabase::class.java,
                     "product_scanner_db"
                 )
-                    .addMigrations(MIGRATION_2_3)
-                    // keep this if you want safety in dev:
+                    .addMigrations(MIGRATION_3_4)
+                    // you can keep this while developing
                     .fallbackToDestructiveMigration()
                     .build()
                     .also { INSTANCE = it }

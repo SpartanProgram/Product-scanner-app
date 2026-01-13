@@ -21,11 +21,38 @@ fun HistoryItemCard(
             .clickable { onClick(item.barcode) }
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
             Text(item.name, style = MaterialTheme.typography.titleMedium)
+
             item.brand?.let {
-                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-            Text("Barcode: ${item.barcode}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+            Text(
+                "Barcode: ${item.barcode}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            // quantity + nutri-score (only show if at least one exists)
+            if (!item.quantity.isNullOrBlank() || !item.nutriScoreGrade.isNullOrBlank()) {
+                val parts = buildList {
+                    item.quantity?.takeIf { it.isNotBlank() }?.let { add(it) }
+                    item.nutriScoreGrade?.takeIf { it.isNotBlank() }?.let { grade ->
+                        add("Nutri-Score ${grade.uppercase()}")
+                    }
+                }
+
+                Text(
+                    text = parts.joinToString(" • "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
             if (item.categories.isNotEmpty()) {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

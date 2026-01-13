@@ -11,5 +11,12 @@ data class HistoryEntity(
     val ingredients: String?,
     val categoriesCsv: String, // 3 enums CSV
     val reasonsText: String,   // store reasons as text (newline-separated)
+
+    val imageUrl: String?,
+    val quantity: String?,
+    val nutriScoreGrade: String?,
+    val offCategories: String?,
+
     val updatedAtMillis: Long
+
 )

@@ -40,9 +40,9 @@ class RoomHistoryRepository(
                     brand = e.brand,
                     ingredients = e.ingredients,
 
-                    imageUrl = null,
-                    quantity = null,
-                    nutriScoreGrade = null,
+                    imageUrl = e.imageUrl,
+                    quantity = e.quantity,
+                    nutriScoreGrade = e.nutriScoreGrade,
                     offCategories = null,
                     offCategoriesTags = null,
 
@@ -69,6 +69,12 @@ class RoomHistoryRepository(
                 ingredients = product.ingredients,
                 categoriesCsv = csv,
                 reasonsText = reasonsText,
+
+                imageUrl = product.imageUrl,
+                quantity = product.quantity,
+                nutriScoreGrade = product.nutriScoreGrade,
+                offCategories = product.offCategories,
+
                 updatedAtMillis = System.currentTimeMillis()
             )
         )
