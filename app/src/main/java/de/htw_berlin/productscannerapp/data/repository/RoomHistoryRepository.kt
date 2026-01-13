@@ -1,3 +1,4 @@
+// data/repository/RoomHistoryRepository.kt
 package de.htw_berlin.productscannerapp.data.repository
 
 import de.htw_berlin.productscannerapp.data.local.db.HistoryDao
@@ -20,12 +21,18 @@ class RoomHistoryRepository(
                     .split(",")
                     .map { it.trim() }
                     .filter { it.isNotBlank() }
-                    .take(3) // we store 3
+                    .take(3)
                     .mapIndexed { index, raw ->
                         val cat = runCatching { FoodCategory.valueOf(raw) }.getOrNull() ?: FoodCategory.UNKNOWN
                         CategoryTag(category = cat, label = labelForDimension(cat, index))
                     }
                     .padTo3()
+
+                val reasons = e.reasonsText
+                    .split("\n")
+                    .map { it.trim() }
+                    .filter { it.isNotBlank() }
+                    .ifEmpty { listOf("Saved from history.") }
 
                 Product(
                     barcode = e.barcode,
@@ -40,15 +47,19 @@ class RoomHistoryRepository(
                     offCategoriesTags = null,
 
                     categories = cats,
-                    reasons = listOf("Loaded from history. Re-scan or open with internet for full explanation.")
+                    reasons = reasons
                 )
             }
         }
 
     override suspend fun add(product: Product) {
-        // Ensure we store exactly 3 tags in the right order
         val three = product.categories.take(3).padTo3()
         val csv = three.joinToString(",") { it.category.name }
+
+        val reasonsText = product.reasons
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .joinToString("\n")
 
         dao.upsert(
             HistoryEntity(
@@ -57,14 +68,13 @@ class RoomHistoryRepository(
                 brand = product.brand,
                 ingredients = product.ingredients,
                 categoriesCsv = csv,
+                reasonsText = reasonsText,
                 updatedAtMillis = System.currentTimeMillis()
             )
         )
     }
 
-    override suspend fun clear() {
-        dao.clearAll()
-    }
+    override suspend fun clear() = dao.clearAll()
 
     private fun labelForDimension(cat: FoodCategory, index: Int): String {
         return if (cat != FoodCategory.UNKNOWN) {
@@ -83,7 +93,6 @@ class RoomHistoryRepository(
         if (size >= 3) return take(3)
         val missing = 3 - size
         val fillers = (0 until missing).map { i ->
-            // continue the dimension index from current size
             val idx = size + i
             CategoryTag(FoodCategory.UNKNOWN, labelForDimension(FoodCategory.UNKNOWN, idx))
         }

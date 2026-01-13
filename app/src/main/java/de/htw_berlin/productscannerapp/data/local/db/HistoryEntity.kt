@@ -9,6 +9,7 @@ data class HistoryEntity(
     val name: String,
     val brand: String?,
     val ingredients: String?,
-    val categoriesCsv: String, // store enums as CSV (simple)
+    val categoriesCsv: String, // 3 enums CSV
+    val reasonsText: String,   // store reasons as text (newline-separated)
     val updatedAtMillis: Long
 )
