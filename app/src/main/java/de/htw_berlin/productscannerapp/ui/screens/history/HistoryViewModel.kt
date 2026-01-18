@@ -21,9 +21,11 @@ class HistoryViewModel : ViewModel() {
                         brand = p.brand,
                         timestampLabel = "Recently",
                         categories = p.categories,
+
                         quantity = p.quantity,
                         nutriScoreGrade = p.nutriScoreGrade
                     )
+
                 }
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())

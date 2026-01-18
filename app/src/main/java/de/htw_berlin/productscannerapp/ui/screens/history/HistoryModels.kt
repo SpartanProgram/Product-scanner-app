@@ -5,10 +5,11 @@ import de.htw_berlin.productscannerapp.ui.components.CategoryTag
 data class HistoryItemUi(
     val barcode: String,
     val name: String,
-    val brand: String? = null,
-    val timestampLabel: String = "Just now",
-    val categories: List<CategoryTag> = emptyList(),
-    val quantity: String?,
-    val nutriScoreGrade: String?
+    val brand: String?,
+    val timestampLabel: String,
+    val categories: List<CategoryTag>,
 
+    val quantity: String? = null,
+    val nutriScoreGrade: String? = null
 )
+
