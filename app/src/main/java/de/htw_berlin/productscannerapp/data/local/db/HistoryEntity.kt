@@ -13,8 +13,8 @@ data class HistoryEntity(
     val reasonsText: String,   // store reasons as text (newline-separated)
 
     val imageUrl: String?,
-    val quantity: String?,
-    val nutriScoreGrade: String?,
+    val quantity: String? = null,
+    val nutriScoreGrade: String? = null,
     val offCategories: String?,
 
     val updatedAtMillis: Long

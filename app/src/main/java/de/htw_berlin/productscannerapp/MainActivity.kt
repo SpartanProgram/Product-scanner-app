@@ -6,10 +6,12 @@ import androidx.activity.compose.setContent
 import de.htw_berlin.productscannerapp.data.AppGraph
 import de.htw_berlin.productscannerapp.ui.app.ProductScannerApp
 import de.htw_berlin.productscannerapp.ui.theme.ProductScannerAppTheme
+import androidx.core.view.WindowCompat
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         AppGraph.init(applicationContext)
 

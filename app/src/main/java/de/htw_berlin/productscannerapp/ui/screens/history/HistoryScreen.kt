@@ -22,8 +22,8 @@ fun HistoryScreen(
 
     if (history.isEmpty()) {
         EmptyState(
-            title = "No scans yet",
-            subtitle = "Scan a product to see it here.",
+            title = "Nothing scanned yet",
+            subtitle = "Scan a product to build your history here.",
             modifier = Modifier.padding(innerPadding)
         )
         return
@@ -37,7 +37,7 @@ fun HistoryScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Recent scans", style = MaterialTheme.typography.titleMedium)
+            Text("Recent", style = MaterialTheme.typography.titleMedium)
             TextButton(onClick = { vm.clear() }) { Text("Clear") }
         }
 

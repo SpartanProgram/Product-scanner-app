@@ -9,7 +9,7 @@ data class HistoryItemUi(
     val timestampLabel: String,
     val categories: List<CategoryTag>,
 
+    val imageUrl: String? = null,
     val quantity: String? = null,
     val nutriScoreGrade: String? = null
 )
-

@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -22,52 +23,54 @@ fun CategoryChip(
     tag: CategoryTag,
     modifier: Modifier = Modifier
 ) {
-    val (colors, icon) = when (tag.category) {
-        FoodCategory.NON_HALAL -> AssistChipDefaults.assistChipColors(
+    val isNegative = when (tag.category) {
+        FoodCategory.NON_HALAL,
+        FoodCategory.NOT_VEGETARIAN,
+        FoodCategory.NOT_VEGAN -> true
+        else -> false
+    }
+
+    val isPositive = when (tag.category) {
+        FoodCategory.HALAL,
+        FoodCategory.VEGETARIAN,
+        FoodCategory.VEGAN -> true
+        else -> false
+    }
+
+    val colors = when {
+        isNegative -> AssistChipDefaults.assistChipColors(
             containerColor = MaterialTheme.colorScheme.errorContainer,
             labelColor = MaterialTheme.colorScheme.onErrorContainer,
             leadingIconContentColor = MaterialTheme.colorScheme.onErrorContainer
-        ) to Icons.Outlined.Block // ❌
+        )
 
-        FoodCategory.NOT_VEGETARIAN -> AssistChipDefaults.assistChipColors(
+        isPositive -> AssistChipDefaults.assistChipColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
             leadingIconContentColor = MaterialTheme.colorScheme.onSecondaryContainer
-        ) to Icons.Outlined.Restaurant // 🥩
+        )
 
-        FoodCategory.UNKNOWN -> AssistChipDefaults.assistChipColors(
+        else -> AssistChipDefaults.assistChipColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
             leadingIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ) to Icons.Outlined.Info // ℹ️
+        )
+    }
 
-        FoodCategory.HALAL -> AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            leadingIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        ) to Icons.Outlined.Verified
+    val icon: ImageVector = when (tag.category) {
+        FoodCategory.NON_HALAL -> Icons.Outlined.Block
+        FoodCategory.NOT_VEGETARIAN -> Icons.Outlined.Restaurant
+        FoodCategory.NOT_VEGAN -> Icons.Outlined.Block
 
-        FoodCategory.VEGAN -> AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-            labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
-            leadingIconContentColor = MaterialTheme.colorScheme.onTertiaryContainer
-        ) to Icons.Outlined.Spa
+        FoodCategory.HALAL -> Icons.Outlined.Verified
+        FoodCategory.VEGETARIAN -> Icons.Outlined.Eco
+        FoodCategory.VEGAN -> Icons.Outlined.Spa
 
-        FoodCategory.VEGETARIAN -> AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            leadingIconContentColor = MaterialTheme.colorScheme.onSecondaryContainer
-        ) to Icons.Outlined.Eco
-
-        FoodCategory.NOT_VEGAN -> AssistChipDefaults.assistChipColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            leadingIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-        ) to Icons.Outlined.Info
+        FoodCategory.UNKNOWN -> Icons.Outlined.Info
     }
 
     AssistChip(
-        onClick = { },
+        onClick = { /* no-op */ },
         label = { Text(tag.label) },
         leadingIcon = { Icon(icon, contentDescription = null) },
         colors = colors,

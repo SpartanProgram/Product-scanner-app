@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import de.htw_berlin.productscannerapp.ui.components.GlassCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,7 +74,7 @@ fun ScanScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Scan a barcode", style = MaterialTheme.typography.titleMedium)
+            Text("Scan a product", style = MaterialTheme.typography.titleMedium)
 
             IconButton(onClick = { scanningEnabled = !scanningEnabled }) {
                 Icon(
@@ -83,8 +84,7 @@ fun ScanScreen(
             }
         }
 
-        // This is NOT a real preview for Code Scanner; it's a launcher surface.
-        Card(
+        GlassCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
@@ -92,25 +92,39 @@ fun ScanScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = if (scanningEnabled) "Tap to open scanner" else "Scanning is off",
-                    style = MaterialTheme.typography.titleSmall
+                Icon(
+                    imageVector = if (scanningEnabled) Icons.Outlined.Videocam else Icons.Outlined.VideocamOff,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(44.dp)
                 )
+
+                Spacer(Modifier.height(12.dp))
+
+                Text(
+                    text = if (scanningEnabled) "Tap to scan" else "Camera scanning is off",
+                    style = MaterialTheme.typography.titleLarge
+                )
+
+                Spacer(Modifier.height(6.dp))
+
                 Text(
                     text = if (scanningEnabled)
-                        "The scanner will open in a separate camera screen."
+                        "Opens the camera scanner."
                     else
-                        "Turn scanning on to open the camera scanner.",
+                        "Turn it on to scan with the camera.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(Modifier.height(8.dp))
+
+                Spacer(Modifier.height(14.dp))
+
                 Text(
-                    text = "Tip: Align the barcode in the center.",
+                    text = "Tip: keep the barcode inside the frame.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -1,4 +1,3 @@
-// data/repository/RoomHistoryRepository.kt
 package de.htw_berlin.productscannerapp.data.repository
 
 import de.htw_berlin.productscannerapp.data.local.db.HistoryDao

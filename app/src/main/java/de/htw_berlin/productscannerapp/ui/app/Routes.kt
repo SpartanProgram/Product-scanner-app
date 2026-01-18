@@ -18,7 +18,6 @@ sealed class AppRoute(val route: String) {
     }
 }
 
-
 data class DrawerItem(
     val route: AppRoute,
     val label: String,
